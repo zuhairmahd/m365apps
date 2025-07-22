@@ -15,5 +15,5 @@
   <AppSettings>
     <Setup Name="Company" Value="Company Name" />
   </AppSettings>
-  <Display Level="None" AcceptEULA="FALSE" />
+  <Display Level="None" AcceptEULA="TRUE" />
 </Configuration>

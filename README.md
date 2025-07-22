@@ -1,3 +1,11 @@
+Based on the script by Authors: JankeSkanke, sandytsang
+# What changed
+
+* Rewrote logging function to more closely follow CMTrace
+* Added a -uninstall switch to the Office 365 installation script
+* Added a function to check whether Office is installed before proceeding with uninstallation
+* Fixed the detection script to (hopefully) better detect office through the registry
+
 ---
 Version: 1.2.1 
 Title: M365 Apps Intune scripted dynamic install using Office Deployment Toolkit
