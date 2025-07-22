@@ -7,7 +7,7 @@
     Running Setup.exe from downloaded files with provided config.xml file. 
 
 .EXAMPLE
-    Without external XML (Requires configuration.xml in the package)
+    Without external XML (Requires $installationFile in the package)
     powershell.exe -executionpolicy bypass -file InstallM365Apps.ps1
     With external XML (Requires XML to be provided by URL)  
     powershell.exe -executionpolicy bypass -file InstallM365Apps.ps1 -XMLURL "https://mydomain.com/xmlfile.xml"
@@ -601,18 +601,21 @@ try
                 Write-Log -Message "Setup file signature verified, proceeding with installation" -LogFile $LogFile -Module $ModuleName -LogLevel Information
                 if ($XMLUrl)
                 {
-                    Write-Output "[ACTION] Attempting to download configuration.xml from external URL: $XMLUrl"
-                    Write-Log -Message "Attempting to download configuration.xml from external URL: $XMLUrl" -LogFile $LogFile -Module $ModuleName -LogLevel Information
+                    Write-Output "[ACTION] Attempting to download $installationFile from external URL: $XMLUrl"
+                    Write-Log -Message "Attempting to download $installationFile from external URL: $XMLUrl" -LogFile $LogFile -Module $ModuleName -LogLevel Information
                     try
                     {
-                        Start-DownloadFile -URL $XMLURL -Path $SetupFolder -Name "configuration.xml"
-                        Write-Output "[SUCCESS] Downloading configuration.xml from external URL completed"
-                        Write-Log -Message "Downloading configuration.xml from external URL completed" -LogFile $LogFile -Module $ModuleName -LogLevel Information
+                        Start-DownloadFile -URL $XMLURL -Path $SetupFolder -Name $installationFile
+                        Write-Output "[SUCCESS] Downloading $installationFile from external URL completed"
+                        Write-Log -Message "Downloading $installationFile from external URL completed" -LogFile $LogFile -Module $ModuleName -LogLevel Information
+                        Start-DownloadFile -URL $XMLURL -Path $SetupFolder -Name $uninstallationFile
+                        Write-Output "[SUCCESS] Downloading $uninstallationFile from external URL completed"
+                        Write-Log -Message "Downloading $uninstallationFile from external URL completed" -LogFile $LogFile -Module $ModuleName -LogLevel Information
                     }
                     catch
                     {
-                        Write-Output "[ERROR] Downloading configuration.xml from external URL failed: $($_.Exception.Message)"
-                        Write-Log -Message ('Downloading configuration.xml from external URL failed: ' + $_.Exception.Message) -LogFile $LogFile -Module $ModuleName -LogLevel Error
+                        Write-Output "[ERROR] Downloading $installationFile from external URL failed: $($_.Exception.Message)"
+                        Write-Log -Message ('Downloading $installationFile from external URL failed: ' + $_.Exception.Message) -LogFile $LogFile -Module $ModuleName -LogLevel Error
                         Write-Log -Message "M365 Apps setup failed" -LogFile $LogFile -Module $ModuleName -LogLevel Error
                         Write-Log -LogFile $LogFile -FinishLogging
                         exit 1
@@ -620,18 +623,20 @@ try
                 }
                 else
                 {
-                    Write-Output "[ACTION] Running with local configuration.xml"
-                    Write-Log -Message "Running with local configuration.xml" -LogFile $LogFile -Module $ModuleName -LogLevel Information
+                    Write-Output "[ACTION] Running with local $installationFile"
+                    Write-Log -Message "Running with local $installationFile" -LogFile $LogFile -Module $ModuleName -LogLevel Information
                     try
                     {
-                        Copy-Item "$($PSScriptRoot)\configuration.xml" $SetupFolder -Force -ErrorAction Stop
+                        Copy-Item "$($PSScriptRoot)\$installationFile" $SetupFolder -Force -ErrorAction Stop
+                        Copy-Item "$($PSScriptRoot)\$uninstallationFile" $SetupFolder -Force -ErrorAction Stop
+
                         Write-Output "[SUCCESS] Local Office Setup configuration file copied"
                         Write-Log -Message "Local Office Setup configuration file copied" -LogFile $LogFile -Module $ModuleName -LogLevel Information
                     }
                     catch
                     {
-                        Write-Output "[ERROR] Failed to copy local configuration.xml: $($_.Exception.Message)"
-                        Write-Log -Message ('Failed to copy local configuration.xml: ' + $_.Exception.Message) -LogFile $LogFile -Module $ModuleName -LogLevel Error
+                        Write-Output "[ERROR] Failed to copy local $($installationFile): $($_.Exception.Message)"
+                        Write-Log -Message ('Failed to copy local $($installationFile): ' + $_.Exception.Message) -LogFile $LogFile -Module $ModuleName -LogLevel Error
                         Write-Log -LogFile $LogFile -FinishLogging
                         exit 1
                     }
@@ -655,6 +660,18 @@ try
                             Write-Output "[ACTION] Office is installed, proceeding with uninstallation."
                             Write-Log -Message "Office is installed, proceeding with uninstallation." -LogFile $LogFile -Module $ModuleName -LogLevel Information
                             $null = Start-Process $SetupFilePath -ArgumentList "/configure $($SetupFolder)\$uninstallationFile" -Wait -PassThru -ErrorAction Stop
+                            if (-not (Test-OfficeIsInstalled))
+                            {
+                                Write-Output "[Success] Office uninstall was successful."
+                                Write-Log -Message "Office uninstall was successful." -LogFile $LogFile -Module $ModuleName -LogLevel Information
+                            }
+                            else
+                            {
+                                Write-Output "[ERROR] Office uninstall failed, please check the logs."
+                                Write-Log -Message "Office uninstall failed, please check the logs." -LogFile $LogFile -Module $ModuleName -LogLevel Error
+                                Write-Log -LogFile $LogFile -FinishLogging
+                                exit 1
+                            }
                         }
                     }
                     else 
@@ -662,6 +679,16 @@ try
                         Write-Output "[ACTION] Starting M365 Apps Install with Win32App method"
                         Write-Log -Message "Starting M365 Apps Install with Win32App method" -LogFile $LogFile -Module $ModuleName -LogLevel Information
                         $null = Start-Process $SetupFilePath -ArgumentList "/configure $($SetupFolder)\$installationFile" -Wait -PassThru -ErrorAction Stop
+                        if (test-OfficeIsInstalled)
+                        {
+                            Write-Output "[SUCCESS] M365 Apps installation was successful."
+                            Write-Log -Message "M365 Apps installation was successful." -LogFile $LogFile -Module $ModuleName -LogLevel Information
+                        }
+                        else
+                        {
+                            Write-Output "[ERROR] M365 Apps installation failed, please check the logs."
+                            Write-Log -Message "M365 Apps installation failed, please check the logs." -LogFile $LogFile -Module $ModuleName -LogLevel Error
+                        }
                     }
                 }
                 catch
