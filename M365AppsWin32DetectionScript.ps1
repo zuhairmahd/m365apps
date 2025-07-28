@@ -327,7 +327,7 @@ function Write-Log()
 	}
 }
 
-$logFile = "$env:ProgramData\Microsoft\IntuneManagementExtension\Logs\apps\M365AppsWin32DetectionScript.log"
+$logFile = "$env:ProgramData\Microsoft\IntuneManagementExtension\Logs\appLogs\M365AppsWin32DetectionScript.log"
 $moduleName = "Office 365 detection"
 Write-Log -LogFile $logFile -StartLogging
 Write-Log -Message "Starting $moduleName" -LogFile $logFile -Module $moduleName 
