@@ -517,7 +517,8 @@ function Invoke-FileCertVerification()
 #Region Initialisations
 $installationPath = "$env:TEMP\odt"
 # Define log file path and module name for logging
-$LogFile = "$env:programData\Microsoft\IntuneManagementExtension\Logs\appLogs\InstallM365Apps.log"
+$LogFolder = "$env:ProgramData\Microsoft\IntuneManagementExtension\Logs\appLogs"
+$LogFile = "$LogFolder\InstallM365Apps.log"
 $ModuleName = 'InstallM365Apps.ps1'
 $installationFile = "install.xml"
 $uninstallationFile = "uninstall.xml"

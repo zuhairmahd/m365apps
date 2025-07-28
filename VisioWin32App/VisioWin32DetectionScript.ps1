@@ -1,5 +1,6 @@
 #DetectionScript
-function Write-LogEntry {
+function Write-LogEntry
+{
 	param (
 		[parameter(Mandatory = $true, HelpMessage = "Value added to the log file.")]
 		[ValidateNotNullOrEmpty()]
@@ -28,14 +29,20 @@ function Write-LogEntry {
 	$LogText = "<![LOG[$($Value)]LOG]!><time=""$($Time)"" date=""$($Date)"" component=""$($LogFileName)"" context=""$($Context)"" type=""$($Severity)"" thread=""$($PID)"" file="""">"
 	
 	# Add value to log file
-	try {
+	try
+	{
 		Out-File -InputObject $LogText -Append -NoClobber -Encoding Default -FilePath $LogFilePath -ErrorAction Stop
-		if ($Severity -eq 1) {
+		if ($Severity -eq 1)
+		{
 			Write-Verbose -Message $Value
-		} elseif ($Severity -eq 3) {
+		}
+		elseif ($Severity -eq 3)
+		{
 			Write-Warning -Message $Value
 		}
-	} catch [System.Exception] {
+	}
+ catch [System.Exception]
+	{
 		Write-Warning -Message "Unable to append log entry to $LogFileName.log file. Error message at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.Message)"
 	}
 }
@@ -45,11 +52,14 @@ Write-LogEntry -Value "Start Visio Install detection logic" -Severity 1
 $RegistryKeys = Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
 $M365Apps = "Microsoft Visio"
 $M365AppsCheck = $RegistryKeys | Where-Object { $_.GetValue("DisplayName") -match $M365Apps }
-if ($M365AppsCheck) {
-    Write-LogEntry -Value "Visio detected OK" -Severity 1
-    Write-Output "Visio Detected"
-	Exit 0
-   }else{
-    Write-LogEntry -Value "Visio not detected" -Severity 2
-    Exit 1
+if ($M365AppsCheck)
+{
+	Write-LogEntry -Value "Visio detected OK" -Severity 1
+	Write-Output "Visio Detected"
+	exit 0
+}
+else
+{
+	Write-LogEntry -Value "Visio not detected" -Severity 2
+	exit 1
 }
